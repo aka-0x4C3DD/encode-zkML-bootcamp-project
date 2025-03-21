@@ -1,0 +1,147 @@
+/* Custom styles to complement Bootstrap */
+
+.hero-gradient {
+    background: linear-gradient(135deg, #6e8efb, #a777e3);
+    color: white;
+    padding: 60px 0;
+}
+
+.feature-card {
+    border-radius: 10px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    height: 100%;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.result-container {
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+}
+
+.result-header {
+    background: linear-gradient(90deg, #6e8efb, #a777e3);
+    color: white;
+    padding: 15px 20px;
+}
+
+.zkp-badge {
+    background-color: #a777e3;
+}
+
+.chart-container {
+    position: relative;
+    height: 300px;
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.sample-post {
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 10px;
+    background-color: #f8f9fa;
+}
+
+.post-sample {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+}
+
+.loader-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 30px 0;
+}
+
+.hero-section {
+    padding: 60px 0;
+    background: linear-gradient(135deg, #6e8efb, #a777e3);
+    color: white;
+    margin-bottom: 30px;
+}
+
+.feature-icon {
+    font-size: 2.5rem;
+    color: #6e8efb;
+    margin-bottom: 15px;
+}
+
+.footer {
+    margin-top: 50px;
+    padding: 20px 0;
+    background-color: #f8f9fa;
+    text-align: center;
+    border-top: 1px solid #dee2e6;
+}
+
+/* Proof verification styling */
+.verification-badge {
+    padding: 8px 16px;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+    background-color: #4CAF50;
+    color: white;
+}
+
+/* Emotion colors */
+.emotion-joy {
+    color: #FFD700;
+    font-weight: 600;
+}
+
+.emotion-surprise {
+    color: #FF8C00;
+    font-weight: 600;
+}
+
+.emotion-neutral {
+    color: #A9A9A9;
+    font-weight: 600;
+}
+
+.emotion-sadness {
+    color: #1E90FF;
+    font-weight: 600;
+}
+
+.emotion-fear {
+    color: #800080;
+    font-weight: 600;
+}
+
+.emotion-anger {
+    color: #FF0000;
+    font-weight: 600;
+}
+
+.emotion-disgust {
+    color: #006400;
+    font-weight: 600;
+}
+
+/* Interactive elements */
+.chart-container canvas:hover {
+    cursor: pointer;
+}
+
+.loader {
+    display: none;
+    text-align: center;
+    margin: 20px 0;
+}
+
+.result-card {
+    display: none;
+    margin-top: 30px;
+}
