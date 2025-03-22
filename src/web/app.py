@@ -53,13 +53,22 @@ def analyze():
     
     try:
         # Initialize Bluesky API
-        bluesky_api = BlueskyAPI(username, password)
+        bluesky_api = BlueskyAPI()  # Initialize without credentials first
+        
+        # Only attempt login if both username and password are provided
+        if username and password:
+            success = bluesky_api.login(username, password)
+            if not success:
+                return jsonify({'error': 'Failed to authenticate with Bluesky. Please check your credentials.'}), 401
         
         # Fetch posts
         posts = bluesky_api.fetch_posts_for_question(question)
         
         if not posts:
-            return jsonify({'error': 'No posts found for the given question'}), 404
+            return jsonify({
+                'error': 'No posts found for the given question. ' + 
+                         ('Try providing valid Bluesky credentials for better results.' if not bluesky_api.is_authenticated else '')
+            }), 404
         
         # Analyze emotions
         emotion_results = emotion_analyzer.get_aggregate_emotions(posts)
@@ -149,6 +158,26 @@ def generate_proof():
             'message': f'Error generating proof: {str(e)}',
             'verification': 'Proof generation failed'
         })
+
+@app.route('/test_auth', methods=['POST'])
+def test_auth():
+    """Test Bluesky API authentication with the provided credentials."""
+    username = request.form.get('username')
+    password = request.form.get('password')
+    
+    if not username or not password:
+        return jsonify({'error': 'Both username and password are required'}), 400
+    
+    try:
+        bluesky_api = BlueskyAPI()
+        success = bluesky_api.login(username, password)
+        
+        if success:
+            return jsonify({'success': True, 'message': 'Authentication successful'})
+        else:
+            return jsonify({'error': 'Authentication failed. Invalid username or password.'}), 401
+    except Exception as e:
+        return jsonify({'error': f'Authentication error: {str(e)}'}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

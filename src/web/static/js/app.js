@@ -116,6 +116,40 @@ $(document).ready(function() {
             }
         });
     });
+
+    // Test authentication button
+    $('#testAuth').on('click', function() {
+        const username = $('#username').val();
+        const password = $('#password').val();
+        
+        if (!username || !password) {
+            alert("Please enter both username and password to test authentication");
+            return;
+        }
+        
+        $(this).prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status"></span> Testing...');
+        
+        $.ajax({
+            url: '/test_auth',
+            type: 'POST',
+            data: {
+                username: username,
+                password: password
+            },
+            success: function(response) {
+                alert("Authentication successful! You can now analyze posts.");
+                $('#testAuth').prop('disabled', false).html('Test Authentication');
+            },
+            error: function(xhr) {
+                let message = "Authentication failed. Please check your credentials.";
+                if (xhr.responseJSON && xhr.responseJSON.error) {
+                    message = xhr.responseJSON.error;
+                }
+                alert(message);
+                $('#testAuth').prop('disabled', false).html('Test Authentication');
+            }
+        });
+    });
 });
 
 /**

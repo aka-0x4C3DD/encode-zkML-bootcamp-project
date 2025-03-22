@@ -52,13 +52,13 @@ class KeywordExtractor:
         # Return the top N keywords
         return [keyword for keyword, _ in keyword_counter.most_common(top_n)]
 
-    def extract_keywords_from_question(self, question: str, min_length: int = 3) -> List[str]:
+    def extract_keywords_from_question(self, question: str, min_length: int = 2) -> List[str]:
         """
         Extract keywords specifically from a question for search purposes.
         
         Args:
             question: The question to extract keywords from
-            min_length: Minimum length of keywords
+            min_length: Minimum length of keywords (reduced from 3 to 2)
             
         Returns:
             List of keywords
@@ -71,18 +71,18 @@ class KeywordExtractor:
         
         # Get entities
         for ent in doc.ents:
-            if len(ent.text) > min_length:
+            if len(ent.text) >= min_length:
                 keywords.add(ent.text.lower())
         
         # Get noun chunks
         for chunk in doc.noun_chunks:
-            if len(chunk.text) > min_length:
+            if len(chunk.text) >= min_length:
                 keywords.add(chunk.text.lower())
         
         # Get important individual tokens
         for token in doc:
             # Skip stopwords, short words, and non-relevant parts of speech
-            if (token.is_stop or len(token.text) <= min_length or 
+            if (token.is_stop or len(token.text) < min_length or 
                 token.pos_ not in ['NOUN', 'PROPN', 'ADJ', 'VERB']):
                 continue
                 
@@ -91,5 +91,11 @@ class KeywordExtractor:
                 continue
                 
             keywords.add(token.text.lower())
+        
+        # Special case for acronyms and important short words
+        special_terms = ["ai", "ml", "ui", "ux", "vr", "ar"]
+        for term in special_terms:
+            if term in question.lower():
+                keywords.add(term)
         
         return list(keywords)

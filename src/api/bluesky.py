@@ -12,18 +12,69 @@ class BlueskyAPI:
 
     def login(self, username, password):
         try:
-            self.client.login(username, password)
+            if not username or not password:
+                logging.warning("No Bluesky credentials provided, operating in unauthenticated mode")
+                self.is_authenticated = False
+                return False
+                
+            # Try to login
+            logging.info(f"Attempting to login with username: {username}")
+            session = self.client.login(username, password)
             self.is_authenticated = True
             logging.info("Successfully logged in to Bluesky")
+            return True
         except Exception as e:
             logging.error(f"Failed to login to Bluesky: {e}")
             self.is_authenticated = False
+            return False
 
     def fetch_posts_by_keyword(self, keyword, limit=10):
         """Fetch posts containing the given keyword."""
         try:
             response = self.client.app.bsky.feed.search_posts({"q": keyword, "limit": limit})
-            return [post.text for post in response.posts]
+            
+            # Debug full response structure
+            logging.debug(f"Response structure: {response}")
+            
+            posts = []
+            for post in response.posts:
+                try:
+                    # Extract text based on current API structure
+                    if hasattr(post, 'record') and hasattr(post.record, 'text'):
+                        posts.append(post.record.text)
+                    elif hasattr(post, 'post') and hasattr(post.post, 'record') and hasattr(post.post.record, 'text'):
+                        posts.append(post.post.record.text)
+                    elif hasattr(post, 'value') and hasattr(post.value, 'text'):
+                        posts.append(post.value.text)
+                    # New structure handling for current API
+                    else:
+                        # Get all available attributes to find the text
+                        attrs = dir(post)
+                        logging.debug(f"Post attributes: {attrs}")
+                        
+                        # Try to find text in various locations
+                        if 'text' in attrs:
+                            posts.append(post.text)
+                        elif hasattr(post, 'reply') and hasattr(post.reply, 'root') and hasattr(post.reply.root, 'record'):
+                            posts.append(post.reply.root.record.text)
+                        elif hasattr(post, 'params') and hasattr(post.params, 'text'):
+                            posts.append(post.params.text)
+                        # Attempt to extract from nested objects
+                        else:
+                            # Convert to dictionary for easier exploration
+                            post_dict = post.dict() if hasattr(post, 'dict') else vars(post)
+                            logging.debug(f"Post dictionary: {post_dict}")
+                            
+                            # Extract text from the dictionary (check common paths)
+                            if 'record' in post_dict and isinstance(post_dict['record'], dict) and 'text' in post_dict['record']:
+                                posts.append(post_dict['record']['text'])
+                            elif 'text' in post_dict:
+                                posts.append(post_dict['text'])
+
+                except Exception as e:
+                    logging.warning(f"Could not extract text from post: {e}")
+            
+            return posts
         except Exception as e:
             logging.error(f"Error fetching posts by keyword: {e}")
             return []
