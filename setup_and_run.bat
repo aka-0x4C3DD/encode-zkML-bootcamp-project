@@ -30,16 +30,42 @@ call venv\Scripts\activate
 
 echo.
 echo Step 2: Installing dependencies...
-pip install -r requirements.txt
+echo Installing wheel and setuptools first...
+pip install wheel setuptools --upgrade
+
+echo.
+echo Installing spaCy and downloading language model...
+pip install spacy --no-build-isolation
 if %ERRORLEVEL% neq 0 (
-    echo Failed to install dependencies.
+    echo.
+    echo ===================================================
+    echo ERROR: Failed to install spaCy. You need Microsoft Visual C++ Build Tools.
+    echo Please download and install from:
+    echo https://visualstudio.microsoft.com/visual-cpp-build-tools/
+    echo.
+    echo After installing, run this script again.
+    echo ===================================================
     pause
     exit /b 1
 )
 
+echo Downloading spaCy language model...
+python -m spacy download en_core_web_sm
+if %ERRORLEVEL% neq 0 (
+    echo Warning: Failed to download spaCy language model, but continuing setup.
+)
+
+echo.
+echo Installing remaining dependencies...
+pip install -r requirements.txt --no-deps
+if %ERRORLEVEL% neq 0 (
+    echo Warning: Some dependencies may not be installed correctly.
+    echo You can try installing them manually if you encounter issues.
+)
+
 echo.
 echo Step 3: Exporting sentiment analysis model...
-if not exist models\sentiment_model.onnx (
+if not exist models\emotion_model.onnx (
     echo Exporting model to ONNX format...
     python src\main.py --export-model
     if %ERRORLEVEL% neq 0 (
