@@ -9,3 +9,4 @@ matplotlib
 flask
 spacy
 plotly
+huggingface_hub

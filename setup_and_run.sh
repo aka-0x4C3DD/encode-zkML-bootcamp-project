@@ -86,7 +86,7 @@ python -m spacy download en_core_web_sm -v || {
 # Install remaining dependencies
 echo
 echo "Installing remaining dependencies..."
-pip install -r requirements.txt --no-deps -v || {
+pip install -r requirements.txt || {
     echo "WARNING: Some dependencies may not be installed correctly." >&4
     echo "You can try installing them manually if you encounter issues." >&4
 }

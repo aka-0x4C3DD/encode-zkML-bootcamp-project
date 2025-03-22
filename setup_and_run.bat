@@ -141,7 +141,7 @@ if %ERRORLEVEL% neq 0 (
 
 call :log ""
 call :log "Installing remaining dependencies..."
-pip install -r requirements.txt --no-deps -v >> %LOG_FILE% 2>&1
+pip install -r requirements.txt >> %LOG_FILE% 2>&1
 if %ERRORLEVEL% neq 0 (
     call :log "WARNING: Some dependencies may not be installed correctly."
     call :log "You can try installing them manually if you encounter issues."
