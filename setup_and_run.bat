@@ -12,6 +12,13 @@ if %ERRORLEVEL% neq 0 (
 )
 
 echo.
+echo Step 0: Upgrading pip...
+python -m pip install --upgrade pip
+if %ERRORLEVEL% neq 0 (
+    echo Warning: Failed to upgrade pip, but continuing setup.
+)
+
+echo.
 echo Step 1: Creating virtual environment...
 if not exist venv (
     echo Creating new virtual environment...
