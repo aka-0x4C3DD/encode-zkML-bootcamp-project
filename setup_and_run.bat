@@ -153,7 +153,7 @@ call :log ""
 call :log "Step 3: Exporting emotion analysis model..."
 if not exist models\emotion_model.onnx (
     call :log "Exporting model to ONNX format..."
-    python src\main.py --export-model >> %LOG_FILE% 2>&1
+    python -m src.main --export-model >> %LOG_FILE% 2>&1
     if %ERRORLEVEL% neq 0 (
         call :log "Failed to export model."
         pause
@@ -169,7 +169,7 @@ call :log ""
 call :log "Step 4: Preparing EZKL environment..."
 if not exist ezkl_files\circuit.ezkl (
     call :log "Setting up EZKL environment..."
-    python src\main.py --prepare-ezkl >> %LOG_FILE% 2>&1
+    python -m src.main --prepare-ezkl >> %LOG_FILE% 2>&1
     if %ERRORLEVEL% neq 0 (
         call :log "Failed to prepare EZKL environment."
         pause

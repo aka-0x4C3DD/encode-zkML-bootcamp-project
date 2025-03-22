@@ -96,7 +96,7 @@ echo
 echo "Step 3: Exporting emotion analysis model..."
 if [ ! -f "models/emotion_model.onnx" ]; then
     echo "Exporting model to ONNX format..."
-    python src/main.py --export-model || {
+    python -m src.main --export-model || {
         echo "ERROR: Failed to export model." >&4
         exit 1
     }
@@ -109,7 +109,7 @@ echo
 echo "Step 4: Preparing EZKL environment..."
 if [ ! -f "ezkl_files/circuit.ezkl" ]; then
     echo "Setting up EZKL environment..."
-    python src/main.py --prepare-ezkl || {
+    python -m src.main --prepare-ezkl || {
         echo "ERROR: Failed to prepare EZKL environment." >&4
         exit 1
     }
