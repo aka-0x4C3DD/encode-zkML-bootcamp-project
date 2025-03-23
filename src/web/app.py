@@ -94,7 +94,7 @@ def analyze():
             'emotion_scores': emotion_scores,
             'colors': colors,
             'emotions_data': emotion_results['emotions_data'],
-            'sample_posts': posts[:5]  # Limit to 5 sample posts
+            'sample_posts': posts[:50]  # Limit to 5 sample posts
         }
         
         return jsonify(response)
@@ -117,7 +117,7 @@ def generate_proof():
         # Step 1: Prepare input for the proof generation
         # Convert the posts to a format suitable for ezkl
         inputs = []
-        for post in posts[:5]:  # Limit to 5 posts for efficiency
+        for post in posts[:50]:  # Limit to 5 posts for efficiency
             # Simple preprocessing: convert to lowercase, remove special chars
             processed = ''.join(c.lower() if c.isalnum() else ' ' for c in post)
             inputs.append(processed)

@@ -99,23 +99,21 @@ class BlueskyAPI:
             logging.error(f"Error fetching recent posts: {e}")
             return []
 
+    # Updated fetch_posts_for_question method
     def fetch_posts_for_question(self, question, limit=20):
-        """
-        Strategy to fetch relevant posts for a question using advanced NLP:
-        1. Extract keywords using spaCy NLP
-        2. Search for each keyword
-        3. Combine and deduplicate results
-        """
-        # Use advanced keyword extraction
         keywords = self.keyword_extractor.extract_keywords_from_question(question)
         
-        if not keywords:
-            # Fallback to simple extraction if NLP fails
-            keywords = [word.lower() for word in question.split() 
-                     if len(word) > 4 and word.lower() not in ['about', 'what', 'where', 'when', 'which', 'who', 'why', 'how']]
+        # Try multi-keyword search first for better relevance
+        if len(keywords) >= 2:
+            # Combine top 2-3 keywords for more relevant results
+            combined_query = " ".join(keywords[:3])
+            combined_posts = self.fetch_posts_by_keyword(combined_query, limit=limit)
+            
+            # If we got enough posts with combined search, return them
+            if len(combined_posts) >= limit//2:
+                return combined_posts
         
-        logging.info(f"Extracted keywords: {keywords}")
-        
+        # Fall back to original approach if needed
         all_posts = []
         posts_per_keyword = limit // len(keywords) if keywords else limit
         
@@ -123,5 +121,5 @@ class BlueskyAPI:
             posts = self.fetch_posts_by_keyword(keyword, limit=posts_per_keyword)
             all_posts.extend(posts)
         
-        # Deduplicate
-        return list(set(all_posts))
+        # Deduplicate and return
+        return list(set(all_posts))[:limit]

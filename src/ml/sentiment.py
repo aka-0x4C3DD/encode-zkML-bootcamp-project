@@ -252,9 +252,17 @@ class EmotionAnalyzer:
             tokenizer = self.tokenizer
             model = self.model
             
+            # Check if GPU is available and move model to GPU if possible
+            device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+            logging.info(f"Using device: {device} for model export")
+            model = model.to(device)
+            
             # Create proper dummy inputs for the model
             dummy_text = "This is a test input for ONNX export"
             encoded_inputs = tokenizer(dummy_text, return_tensors="pt", padding="max_length", max_length=128)
+            
+            # Move input tensors to the same device as the model
+            encoded_inputs = {k: v.to(device) for k, v in encoded_inputs.items()}
             
             # Get input names dynamically
             input_names = list(encoded_inputs.keys())
