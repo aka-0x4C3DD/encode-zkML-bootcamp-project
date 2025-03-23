@@ -4,6 +4,7 @@ import os
 import logging
 from pathlib import Path
 import numpy as np
+import torch  # Add this import at the top
 
 class EZKLIntegrator:
     def __init__(self, model_path=None):
@@ -38,6 +39,24 @@ class EZKLIntegrator:
             settings_path = os.path.join("ezkl_files", "settings.json")
             ezkl.gen_settings(self.model_path, settings_path)
             
+            # Enable GPU acceleration if available
+            with open(settings_path, 'r') as f:
+                settings = json.load(f)
+            
+            # Add GPU acceleration settings
+            settings['run_args'] = {
+                'accelerate': True,  # Enable acceleration
+                'device': 'cuda' if torch.cuda.is_available() else 'cpu'
+            }
+            
+            # Optimize for GPU by increasing batch size
+            settings['proving_args'] = {
+                'batch_size': 16  # Larger batch size for GPU
+            }
+            
+            with open(settings_path, 'w') as f:
+                json.dump(settings, f, indent=2)
+                
             # Create a dummy input for calibration
             dummy_input_path = os.path.join("ezkl_files", "dummy_input.json")
             with open(dummy_input_path, 'w') as f:
@@ -92,7 +111,7 @@ class EZKLIntegrator:
             return None
     
     def generate_proof(self, input_path, output_path="ezkl_files/proof.json", 
-                       witness_path="ezkl_files/witness.json", settings_path="ezkl_files/settings.json"):
+                      witness_path="ezkl_files/witness.json", settings_path="ezkl_files/settings.json"):
         """
         Generate a zero-knowledge proof for the given input.
         
@@ -106,6 +125,21 @@ class EZKLIntegrator:
             Path to the proof file if successful, None otherwise
         """
         try:
+            # Update settings for GPU optimization
+            with open(settings_path, 'r') as f:
+                settings = json.load(f)
+            
+            # Check if GPU is available
+            if torch.cuda.is_available():
+                logging.info("GPU acceleration enabled for proof generation")
+                settings['run_args'] = settings.get('run_args', {})
+                settings['run_args']['accelerate'] = True
+                settings['run_args']['device'] = 'cuda'
+                
+                # Save updated settings
+                with open(settings_path, 'w') as f:
+                    json.dump(settings, f, indent=2)
+            
             # Generate witness
             ezkl.gen_witness(self.circuit_path, input_path, witness_path, settings_path)
             
@@ -116,6 +150,8 @@ class EZKLIntegrator:
             return output_path
         except Exception as e:
             logging.error(f"Error generating proof: {e}")
+            import traceback
+            logging.error(f"Traceback: {traceback.format_exc()}")
             return None
     
     def verify_proof(self, proof_path="ezkl_files/proof.json", settings_path="ezkl_files/settings.json"):

@@ -94,7 +94,7 @@ def analyze():
             'emotion_scores': emotion_scores,
             'colors': colors,
             'emotions_data': emotion_results['emotions_data'],
-            'sample_posts': posts[:50]  # Limit to 5 sample posts
+            'sample_posts': posts[:50]  # Process up to 50 posts
         }
         
         return jsonify(response)
@@ -114,10 +114,13 @@ def generate_proof():
         posts = analysis_data['posts']
         emotion_results = analysis_data['emotion_results']
         
+        # Show progress message to user
+        logger.info(f"Starting proof generation with {min(len(posts), 50)} posts")
+        
         # Step 1: Prepare input for the proof generation
         # Convert the posts to a format suitable for ezkl
         inputs = []
-        for post in posts[:50]:  # Limit to 5 posts for efficiency
+        for post in posts[:50]:  # Process up to 50 posts using GPU acceleration
             # Simple preprocessing: convert to lowercase, remove special chars
             processed = ''.join(c.lower() if c.isalnum() else ' ' for c in post)
             inputs.append(processed)
@@ -127,7 +130,7 @@ def generate_proof():
         with open(input_file, 'w') as f:
             json.dump({"inputs": inputs}, f)
         
-        # Step 3: Generate proof using ezkl
+        # Step 3: Generate proof using ezkl (GPU-accelerated)
         proof_path = ezkl_integrator.generate_proof(
             input_path=input_file,
             output_path="ezkl_files/emotion_proof.json"

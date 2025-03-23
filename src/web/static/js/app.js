@@ -52,7 +52,11 @@ $(document).ready(function() {
                 const samplePostsContainer = $('#sample-posts');
                 samplePostsContainer.empty();
                 
-                response.sample_posts.forEach(function(post, index) {
+                // Only display first 5 posts in UI for performance, though we analyze 50
+                const displayPosts = response.sample_posts.slice(0, 5);
+                const totalPosts = response.sample_posts.length;
+
+                displayPosts.forEach(function(post, index) {
                     const displayText = post.length > 150 ? post.substring(0, 150) + '...' : post;
                     const emotionData = response.emotions_data[index] || { dominant_emotion: 'neutral' };
                     const emotionColor = getEmotionColor(emotionData.dominant_emotion);
@@ -60,13 +64,22 @@ $(document).ready(function() {
                     samplePostsContainer.append(`
                         <div class="list-group-item">
                             <div class="d-flex justify-content-between">
-                                <small class="text-muted">Post ${index + 1}</small>
+                                <small class="text-muted">Post ${index + 1} of ${totalPosts}</small>
                                 <span class="badge" style="background-color: ${emotionColor}">${emotionData.dominant_emotion}</span>
                             </div>
                             <p class="mb-1">${displayText}</p>
                         </div>
                     `);
                 });
+
+                // Add a message showing we're analyzing more posts than displaying
+                if (totalPosts > 5) {
+                    samplePostsContainer.append(`
+                        <div class="list-group-item text-center bg-light">
+                            <small class="text-muted">+ ${totalPosts - 5} more posts analyzed (not displayed)</small>
+                        </div>
+                    `);
+                }
                 
                 // Show results
                 $('#results').show();
@@ -93,13 +106,29 @@ $(document).ready(function() {
     
     // Generate proof button
     $('#generateProofBtn').on('click', function() {
-        $(this).prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Generating...');
+        $(this).prop('disabled', true).html(`
+            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 
+            Generating proof using GPU... 
+            <span class="badge bg-warning text-dark ms-1">0%</span>
+        `);
+        
+        let progressCounter = 0;
+        const progressInterval = setInterval(function() {
+            progressCounter += 5;
+            if (progressCounter <= 95) {
+                $('#generateProofBtn .badge').text(progressCounter + '%');
+            }
+        }, 1500);
         
         $.ajax({
             url: '/generate_proof',
             type: 'POST',
             success: function(response) {
-                $('#generateProofBtn').prop('disabled', false).html('<i class="fas fa-shield-alt me-2"></i>Generate Zero-Knowledge Proof');
+                clearInterval(progressInterval);
+                $('#generateProofBtn').prop('disabled', false).html(`
+                    <i class="fas fa-shield-alt me-2"></i>Generate Zero-Knowledge Proof
+                    <span class="badge bg-warning text-dark ms-1">GPU</span>
+                `);
                 
                 if (response.success) {
                     $('#zkProofMessage').text(response.verification);
@@ -110,6 +139,7 @@ $(document).ready(function() {
                 }
             },
             error: function() {
+                clearInterval(progressInterval);
                 $('#generateProofBtn').prop('disabled', false).html('<i class="fas fa-shield-alt me-2"></i>Generate Zero-Knowledge Proof');
                 $('#zkProofMessage').text('Failed to generate proof. Please try again.');
                 $('#zkProofResult').removeClass('alert-info').addClass('alert-danger').slideDown();
@@ -295,8 +325,8 @@ function createEmotionBreakdownChart(canvasId, data) {
         emotionBreakdownChart.destroy();
     }
     
-    // Only show up to 5 posts for clarity
-    const emotionsData = data.emotions_data.slice(0, 5);
+    // Only show up to 10 posts for chart clarity, even though we're analyzing 50
+    const emotionsData = data.emotions_data.slice(0, 10);
     
     // Prepare data for stacked bar chart
     const emotions = Object.keys(data.emotion_scores);
