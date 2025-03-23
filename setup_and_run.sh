@@ -161,8 +161,10 @@ log "SYSTEM" "Step 4: Preparing EZKL environment..."
 if [ ! -f "ezkl_files/circuit.ezkl" ]; then
     log "SYSTEM" "Setting up EZKL environment..."
     PYTHONPATH=. python src/main.py --prepare-ezkl
-    if [ $? -ne 0 ]; then
-        log "ERROR" "Failed to prepare EZKL environment"
+    EZKL_EXIT_CODE=$?
+    
+    if [ $EZKL_EXIT_CODE -ne 0 ]; then
+        log "ERROR" "Failed to prepare EZKL environment (exit code $EZKL_EXIT_CODE)"
         log "INFO" "Check if the ONNX model was exported correctly"
         log "INFO" "Verify that ezKL is installed properly: pip show ezkl"
         log "INFO" "Ensure you have sufficient disk space and memory"

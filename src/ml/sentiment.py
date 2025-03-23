@@ -117,6 +117,20 @@ class SentimentAnalyzer:
             )
             
             logging.info(f"Model exported to ONNX format at {output_path}")
+            if not os.path.exists(output_path):
+                logging.error(f"Model export failed - file not found: {output_path}")
+                import sys
+                sys.exit(1)
+            
+            # Check file existence and size after export
+            if os.path.exists(output_path):
+                file_size = os.path.getsize(output_path)
+                logging.info(f"Verified model file exists at: {output_path} (size: {file_size} bytes)")
+            else:
+                logging.error(f"Model export failed - file not found at: {output_path}")
+                import sys
+                sys.exit(1)
+            
             return output_path
         except Exception as e:
             logging.error(f"Error exporting model to ONNX: {e}")
@@ -304,6 +318,16 @@ class EmotionAnalyzer:
             
             logging.info(f"Model exported to ONNX format at {output_path}")
             logging.info(f"Tokenizer config saved at {tokenizer_config_path}")
+            
+            # Check file existence and size after export
+            if os.path.exists(output_path):
+                file_size = os.path.getsize(output_path)
+                logging.info(f"Verified model file exists at: {output_path} (size: {file_size} bytes)")
+            else:
+                logging.error(f"Model export failed - file not found at: {output_path}")
+                import sys
+                sys.exit(1)
+            
             return output_path
         except Exception as e:
             logging.error(f"Error exporting model to ONNX: {e}")

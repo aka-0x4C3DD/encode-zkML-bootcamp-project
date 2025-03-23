@@ -6,6 +6,7 @@ from src.ml.sentiment import EmotionAnalyzer
 from src.zk.ezkl_integration import EZKLIntegrator  # Updated import path
 import matplotlib.pyplot as plt
 import numpy as np
+from src.utils.setup_directories import setup_directories
 
 # Configure logging
 logging.basicConfig(
@@ -15,9 +16,10 @@ logging.basicConfig(
 
 def setup_environment():
     """Set up necessary directories and environment."""
-    os.makedirs("models", exist_ok=True)
-    os.makedirs("ezkl_files", exist_ok=True)
-    os.makedirs("results", exist_ok=True)
+    # Use the new utility function
+    directories = setup_directories()
+    logging.info(f"Environment setup complete. Project root: {directories['project_root']}")
+    return directories
 
 def visualize_emotions(emotion_result, output_path="results/emotion_analysis.png"):
     """Create a visualization of emotion results."""
@@ -85,8 +87,10 @@ def main():
     if args.export_model:
         logging.info("Exporting model to ONNX format...")
         onnx_path = emotion_analyzer.export_to_onnx("models/emotion_model.onnx")
-        if onnx_path:
-            logging.info(f"Model exported to {onnx_path}")
+        if not onnx_path or not os.path.exists(onnx_path):
+            logging.error(f"Model export failed, path not found: {onnx_path}")
+            sys.exit(1)
+        logging.info(f"Model exported to {onnx_path}")
     
     # Initialize EZKL integrator
     ezkl_integrator = EZKLIntegrator(model_path="models/emotion_model.onnx")
@@ -94,10 +98,15 @@ def main():
     # Prepare EZKL environment if requested
     if args.prepare_ezkl:
         logging.info("Preparing EZKL environment...")
-        if ezkl_integrator.prepare_model():
-            logging.info("EZKL environment prepared successfully")
-        else:
+        if not os.path.exists("models/emotion_model.onnx"):
+            logging.error("Cannot prepare EZKL: model file doesn't exist at models/emotion_model.onnx")
+            sys.exit(1)
+        
+        success = ezkl_integrator.prepare_model()
+        if not success:
             logging.error("Failed to prepare EZKL environment")
+            sys.exit(1)
+        logging.info("EZKL environment prepared successfully")
     
     # If a question is provided, fetch posts and analyze emotions
     if args.question:

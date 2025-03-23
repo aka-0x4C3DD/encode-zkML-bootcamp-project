@@ -27,12 +27,26 @@ class EZKLIntegrator:
         """
         Prepare the model for use with EZKL.
         """
+        logging.info(f"Current working directory: {os.getcwd()}")
+        logging.info(f"Checking if models directory exists: {os.path.exists('models')}")
+        if os.path.exists('models'):
+            logging.info(f"Contents of models directory: {os.listdir('models')}")
+        
         if model_path:
             self.model_path = model_path
         
+        # Convert to absolute path if it's not already
+        if self.model_path:
+            self.model_path = os.path.abspath(self.model_path)
+            
+        logging.info(f"Working directory: {os.getcwd()}")
+        logging.info(f"Looking for model at absolute path: {self.model_path}")
+        
         if not self.model_path or not os.path.exists(self.model_path):
             logging.error(f"Model path not specified or does not exist: {self.model_path}")
-            return False
+            logging.error(f"Contents of models directory: {os.listdir('models') if os.path.exists('models') else 'directory not found'}")
+            import sys
+            sys.exit(1)  # Ensure the script exits with error code
         
         try:
             # Create settings for the circuit
