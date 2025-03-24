@@ -106,7 +106,7 @@ class SentimentAnalyzer:
                 model,
                 tuple(dummy_input.values()),
                 output_path,
-                opset_version=12,
+                opset_version=14,
                 input_names=['input_ids', 'attention_mask'],
                 output_names=['logits'],
                 dynamic_axes={
