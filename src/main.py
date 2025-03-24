@@ -1,6 +1,7 @@
 import logging
 import argparse
 import os
+import sys
 from src.api.bluesky import BlueskyAPI
 from src.ml.sentiment import EmotionAnalyzer
 from src.zk.ezkl_integration import EZKLIntegrator  # Updated import path
