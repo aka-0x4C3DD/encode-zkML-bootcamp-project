@@ -127,7 +127,6 @@ class EmotionAnalyzer:
     def export_to_onnx(self, output_path="model.onnx") -> str:
         """Export the model to ONNX format for use with ezKL."""
         try:
-            # Create directory for model
             os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
             
             # Get model components and device
@@ -136,40 +135,25 @@ class EmotionAnalyzer:
             device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
             model = model.to(device)
             
-            # Create dummy inputs for export
+            # Create dummy inputs with FIXED shapes - crucial for EZKL compatibility
             dummy_text = "This is a test input for ONNX export"
-            encoded_inputs = tokenizer(dummy_text, return_tensors="pt", padding="max_length", max_length=128)
+            encoded_inputs = tokenizer(dummy_text, return_tensors="pt", 
+                                      padding="max_length", 
+                                      max_length=128,
+                                      truncation=True)
             encoded_inputs = {k: v.to(device) for k, v in encoded_inputs.items()}
             
-            # Set up export parameters
-            input_names = list(encoded_inputs.keys())
-            dynamic_axes = {}
-            for input_name in input_names:
-                dynamic_axes[input_name] = {0: "batch_size", 1: "sequence_length"}
-            dynamic_axes["output"] = {0: "batch_size"}
-            
-            # Export the model
+            # Remove dynamic_axes but keep current opset version
             torch.onnx.export(
                 model,
                 tuple(encoded_inputs.values()),
                 output_path,
-                input_names=input_names,
+                input_names=list(encoded_inputs.keys()),
                 output_names=["output"],
-                dynamic_axes=dynamic_axes,
                 do_constant_folding=True,
-                opset_version=14,
+                opset_version=14,  # Keep current version 
                 export_params=True
             )
-            
-            # Save tokenizer config
-            tokenizer_config_path = os.path.join(os.path.dirname(output_path), "tokenizer_config.json")
-            with open(tokenizer_config_path, "w") as f:
-                json.dump({
-                    "model_name": self.model_name,
-                    "max_length": 128,
-                    "padding": "max_length",
-                    "truncation": True
-                }, f)
             
             # Verify the export
             onnx.checker.check_model(onnx.load(output_path))
