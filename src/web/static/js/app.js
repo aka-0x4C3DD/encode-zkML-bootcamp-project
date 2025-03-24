@@ -107,18 +107,18 @@ $(document).ready(function() {
     // Generate proof button
     $('#generateProofBtn').on('click', function() {
         $(this).prop('disabled', true).html(`
-            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 
-            Generating proof using GPU... 
+            <span class="spinner-border spinner-border-sm"></span> 
+            Generating proof...
             <span class="badge bg-warning text-dark ms-1">0%</span>
         `);
         
         let progressCounter = 0;
         const progressInterval = setInterval(function() {
-            progressCounter += 5;
-            if (progressCounter <= 95) {
+            progressCounter += 10;
+            if (progressCounter <= 90) {
                 $('#generateProofBtn .badge').text(progressCounter + '%');
             }
-        }, 1500);
+        }, 2000);
         
         $.ajax({
             url: '/generate_proof',
@@ -127,16 +127,13 @@ $(document).ready(function() {
                 clearInterval(progressInterval);
                 $('#generateProofBtn').prop('disabled', false).html(`
                     <i class="fas fa-shield-alt me-2"></i>Generate Zero-Knowledge Proof
-                    <span class="badge bg-warning text-dark ms-1">GPU</span>
                 `);
                 
-                if (response.success) {
-                    $('#zkProofMessage').text(response.verification);
-                    $('#zkProofResult').removeClass('alert-danger').addClass('alert-info').slideDown();
-                } else {
-                    $('#zkProofMessage').text(response.message);
-                    $('#zkProofResult').removeClass('alert-info').addClass('alert-danger').slideDown();
-                }
+                $('#zkProofMessage').text(response.success ? response.verification : response.message);
+                $('#zkProofResult')
+                    .removeClass(response.success ? 'alert-danger' : 'alert-info')
+                    .addClass(response.success ? 'alert-info' : 'alert-danger')
+                    .slideDown();
             },
             error: function() {
                 clearInterval(progressInterval);

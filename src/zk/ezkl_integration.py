@@ -24,75 +24,57 @@ class EZKLIntegrator:
         os.makedirs("ezkl_files", exist_ok=True)
 
     def prepare_model(self, model_path=None):
-        """
-        Prepare the model for use with EZKL.
-        """
-        logging.info(f"Current working directory: {os.getcwd()}")
-        logging.info(f"Checking if models directory exists: {os.path.exists('models')}")
-        if os.path.exists('models'):
-            logging.info(f"Contents of models directory: {os.listdir('models')}")
-        
+        """Prepare the model for use with EZKL."""
         if model_path:
             self.model_path = model_path
         
-        # Convert to absolute path if it's not already
+        # Convert to absolute path
         if self.model_path:
             self.model_path = os.path.abspath(self.model_path)
             
-        logging.info(f"Working directory: {os.getcwd()}")
-        logging.info(f"Looking for model at absolute path: {self.model_path}")
-        
         if not self.model_path or not os.path.exists(self.model_path):
             logging.error(f"Model path not specified or does not exist: {self.model_path}")
-            logging.error(f"Contents of models directory: {os.listdir('models') if os.path.exists('models') else 'directory not found'}")
-            import sys
-            sys.exit(1)  # Ensure the script exits with error code
+            return False
         
         try:
             # Create settings for the circuit
             settings_path = os.path.join("ezkl_files", "settings.json")
             ezkl.gen_settings(self.model_path, settings_path)
             
-            # Enable GPU acceleration if available
+            # Configure acceleration
             with open(settings_path, 'r') as f:
                 settings = json.load(f)
             
-            # Add GPU acceleration settings
             settings['run_args'] = {
-                'accelerate': True,  # Enable acceleration
+                'accelerate': True, 
                 'device': 'cuda' if torch.cuda.is_available() else 'cpu'
             }
             
-            # Optimize for GPU by increasing batch size
             settings['proving_args'] = {
-                'batch_size': 16  # Larger batch size for GPU
+                'batch_size': 16
             }
             
             with open(settings_path, 'w') as f:
                 json.dump(settings, f, indent=2)
-                
-            # Create a dummy input for calibration
+            
+            # Create dummy input and calibrate
             dummy_input_path = os.path.join("ezkl_files", "dummy_input.json")
             with open(dummy_input_path, 'w') as f:
-                json.dump({"input_0": [[1.0] * 10] * 5}, f)  # Simplified dummy input
+                json.dump({"input_0": [[1.0] * 10] * 5}, f)
             
-            # Calibrate the settings for the model
             ezkl.calibrate_settings(self.model_path, settings_path, dummy_input_path)
             
-            # Generate the circuit
+            # Generate circuit and keys
             self.circuit_path = os.path.join("ezkl_files", "circuit.ezkl")
             ezkl.compile_circuit(self.model_path, self.circuit_path, settings_path)
             
-            # Generate the SRS
             self.srs_path = os.path.join("ezkl_files", "kzg.srs")
             ezkl.get_srs(self.srs_path, settings_path)
             
-            # Generate keys
             self.pk_path = os.path.join("ezkl_files", "pk.key")
             self.vk_path = os.path.join("ezkl_files", "vk.key")
             ezkl.setup(self.circuit_path, self.srs_path, self.pk_path, self.vk_path, settings_path)
             
-            logging.info("Model prepared successfully for EZKL")
             return True
         except Exception as e:
             logging.error(f"Error preparing model for EZKL: {e}")
