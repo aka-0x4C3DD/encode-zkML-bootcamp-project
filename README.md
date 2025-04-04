@@ -10,38 +10,29 @@
 [![spaCy](https://img.shields.io/badge/spaCy-v3.5+-9cf.svg)](https://spacy.io/)
 [![Chart.js](https://img.shields.io/badge/Chart.js-v3.9+-yellow.svg)](https://www.chartjs.org/)
 
-<p align="center">
+<!-- <p align="center">
   <img src="https://user-images.githubusercontent.com/your-username/encode-zkML-bootcamp-project/screenshots/banner.png" alt="Project Banner" width="600">
-</p>
+</p> -->
 
 Analyze emotions in Bluesky posts with advanced NLP and protect privacy using Fully Homomorphic Encryption
 
 </div>
 
-## Table of Contents
+<div align="center">
 
+ [🔍 Overview](#-overview)
+| [✨ Features](#-features)
+| [🏗️ Architecture](#️-architecture)
+| [🔄 How It Works](#-how-it-works)
+| [🛠️ Technologies Used](#️-technologies-used)
+| [🚀 Getting Started](#-getting-started)
+| [📘 Usage](#-usage)
+| [🖼️ Screenshots](#️-screenshots)
+| [🔒 Privacy Features](#-privacy-features)
+| [🤝 Contributing](#-contributing)
+| [📄 License](#-license)
 
-
-
-
-- [🔏 Privacy-Preserving Emotion Analysis](#-privacy-preserving-emotion-analysis)
-  - [Table of Contents](#table-of-contents)
-  - [🔍 Overview](#-overview)
-  - [✨ Features](#-features)
-  - [🏗️ Architecture](#️-architecture)
-  - [🔄 How It Works](#-how-it-works)
-  - [🛠️ Technologies Used](#️-technologies-used)
-  - [🚀 Getting Started](#-getting-started)
-    - [Prerequisites](#prerequisites)
-    - [Installation](#installation)
-  - [📘 Usage](#-usage)
-    - [Web Interface](#web-interface)
-    - [Command-Line Interface](#command-line-interface)
-  - [🖼️ Screenshots](#️-screenshots)
-  - [🔒 Privacy Features](#-privacy-features)
-  - [🔐 FHE Implementation Details](#-fhe-implementation-details)
-  - [🤝 Contributing](#-contributing)
-  - [📄 License](#-license)
+</div>
 
 ## 🔍 Overview
 
