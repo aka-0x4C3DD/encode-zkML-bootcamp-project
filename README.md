@@ -194,10 +194,10 @@ sequenceDiagram
    python src/main.py --question "What do people think about AI?" --username your_bluesky_username --password your_bluesky_password --visualize
    ```
 
-## 🖼️ Screenshots
+<!-- ## 🖼️ Screenshots
 
 ![Web Interface](screenshots/web_interface.png)
-![Emotion Results](screenshots/sentiment_results.png)
+![Emotion Results](screenshots/sentiment_results.png) -->
 
 ## 🔒 Privacy Features
 
