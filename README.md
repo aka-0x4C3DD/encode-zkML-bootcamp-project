@@ -20,17 +20,28 @@ Analyze emotions in Bluesky posts with advanced NLP and protect privacy using Fu
 
 ## Table of Contents
 
-- [🔍 Overview](#-overview)
-- [✨ Features](#-features)
-- [🏗️ Architecture](#️-architecture)
-- [🔄 How It Works](#-how-it-works)
-- [🛠️ Technologies Used](#️-technologies-used)
-- [🚀 Getting Started](#-getting-started)
-- [📘 Usage](#-usage)
-- [🖼️ Screenshots](#️-screenshots)
-- [🔒 Privacy Features](#-privacy-features)
-- [🤝 Contributing](#-contributing)
-- [📄 License](#-license)
+
+
+
+
+- [🔏 Privacy-Preserving Emotion Analysis](#-privacy-preserving-emotion-analysis)
+  - [Table of Contents](#table-of-contents)
+  - [🔍 Overview](#-overview)
+  - [✨ Features](#-features)
+  - [🏗️ Architecture](#️-architecture)
+  - [🔄 How It Works](#-how-it-works)
+  - [🛠️ Technologies Used](#️-technologies-used)
+  - [🚀 Getting Started](#-getting-started)
+    - [Prerequisites](#prerequisites)
+    - [Installation](#installation)
+  - [📘 Usage](#-usage)
+    - [Web Interface](#web-interface)
+    - [Command-Line Interface](#command-line-interface)
+  - [🖼️ Screenshots](#️-screenshots)
+  - [🔒 Privacy Features](#-privacy-features)
+  - [🔐 FHE Implementation Details](#-fhe-implementation-details)
+  - [🤝 Contributing](#-contributing)
+  - [📄 License](#-license)
 
 ## 🔍 Overview
 
@@ -56,12 +67,13 @@ graph TD
     D -->|Keywords| E[Bluesky API]
     E -->|Retrieved Posts| F[Emotion Analysis]
     F -->|Uses| G[DistilRoBERTa Model]
+    F -->|For Privacy| I[FHE Integration]
+    I -->|Encrypt| J[Encrypted Data]
+    J -->|Compute On| K[Encrypted Computation]
+    K -->|Decrypt| L[Secure Results]
     F -->|Results| H[Interactive Visualization]
-    F -->|For Privacy| I[ezKL Integration]
-    I -->|Generate| J[Zero-Knowledge Proof]
-    J -->|Verify| K[Proof Verification]
     H -->|Display| B
-    K -->|Status| B
+    L -->|Privacy Info| B
 
     subgraph Frontend
     B
@@ -77,6 +89,7 @@ graph TD
     I
     J
     K
+    L
     end
 ```
 
@@ -89,8 +102,8 @@ sequenceDiagram
     participant API as Flask API
     participant NLP as Keyword Extractor
     participant BSky as Bluesky API
+    participant FHE as FHE Integrator
     participant Model as Emotion Model
-    participant ZKP as ezKL Prover
 
     User->>WebUI: Submit question & credentials
     WebUI->>API: POST /analyze
@@ -98,17 +111,15 @@ sequenceDiagram
     NLP-->>API: Return relevant keywords
     API->>BSky: Search posts with keywords
     BSky-->>API: Return matching posts
-    API->>Model: Analyze emotions in posts
-    Model-->>API: Return emotion analysis
-    API->>WebUI: Send analysis results & charts
-    WebUI->>User: Display emotion visualizations
-
-    User->>WebUI: Request verification
-    WebUI->>API: POST /generate_proof
-    API->>FHE: Perform computation on encrypted data
-    FHE-->>API: Return encrypted result
-    API->>WebUI: Send verification status
-    WebUI->>User: Display privacy verification
+    API->>FHE: Generate embeddings
+    FHE->>FHE: Encrypt embeddings
+    FHE->>FHE: Perform computation on encrypted data
+    FHE->>FHE: Decrypt results
+    FHE-->>API: Return secure results
+    API->>Model: Additional analysis for visualization
+    Model-->>API: Return visualization data
+    API->>WebUI: Send analysis results & FHE details
+    WebUI->>User: Display results with privacy information
 ```
 
 ## 🛠️ Technologies Used
@@ -178,6 +189,13 @@ sequenceDiagram
    ```
    Then open your browser and navigate to `http://localhost:5000`
 
+2. **Analyze emotions with FHE**:
+   - Enter your question or topic
+   - Optionally provide Bluesky credentials for authenticated access
+   - Click "Analyze Emotions"
+   - The system automatically performs analysis using Fully Homomorphic Encryption
+   - Results are displayed with privacy information
+
 ### Command-Line Interface
 
 1. **Analyze emotions for a question (CLI mode)**:
@@ -192,9 +210,28 @@ sequenceDiagram
 
 ## 🔒 Privacy Features
 
-- **Input Privacy**: The Bluesky posts are not revealed to the verifier.
+- **Input Privacy**: The Bluesky posts are encrypted before analysis, ensuring privacy.
 - **Model Privacy**: The emotion analysis model weights remain confidential.
-- **Computation Integrity**: Fully Homomorphic Encryption ensures that the emotion analysis is performed on encrypted data without revealing the inputs.
+- **Computation on Encrypted Data**: Fully Homomorphic Encryption allows computations to be performed directly on encrypted data without decryption.
+- **Seamless Integration**: FHE is integrated directly into the analysis workflow, providing privacy by default.
+- **End-to-End Encryption**: Data remains encrypted throughout the entire computation process, with only the final results being decrypted.
+
+## 🔐 FHE Implementation Details
+
+This project uses a hybrid approach to Fully Homomorphic Encryption:
+
+1. **Feature Extraction**: The DistilRoBERTa model is used to generate embeddings from the input text.
+
+2. **Encryption**: The embeddings are encrypted using TenSEAL's CKKS scheme, which supports operations on encrypted floating-point numbers.
+
+3. **Encrypted Computation**: The classification is performed on the encrypted embeddings using the weights extracted from the original model. This involves:
+   - Matrix multiplication on encrypted data
+   - Addition of bias terms
+   - Classification of emotions based on the encrypted scores
+
+4. **Decryption**: Only the final results are decrypted, ensuring that the raw data and intermediate computations remain private.
+
+This approach provides a good balance between privacy and performance, using FHE for the most sensitive parts of the computation while maintaining reasonable efficiency.
 
 ## 🤝 Contributing
 
