@@ -5,7 +5,7 @@
 [![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-Unlicense-green.svg)](LICENSE)
 [![Transformers](https://img.shields.io/badge/🤗_Transformers-v4.28+-blueviolet.svg)](https://huggingface.co/transformers/)
-[![ezKL](https://img.shields.io/badge/ezKL-Latest-orange.svg)](https://github.com/zkonduit/ezkl)
+[![TenSEAL](https://img.shields.io/badge/TenSEAL-Latest-orange.svg)](https://github.com/OpenMined/TenSEAL)
 [![Flask](https://img.shields.io/badge/Flask-v2.0+-lightgrey.svg)](https://flask.palletsprojects.com/)
 [![spaCy](https://img.shields.io/badge/spaCy-v3.5+-9cf.svg)](https://spacy.io/)
 [![Chart.js](https://img.shields.io/badge/Chart.js-v3.9+-yellow.svg)](https://www.chartjs.org/)
@@ -14,7 +14,7 @@
   <img src="https://user-images.githubusercontent.com/your-username/encode-zkML-bootcamp-project/screenshots/banner.png" alt="Project Banner" width="600">
 </p>
 
-Analyze emotions in Bluesky posts with advanced NLP and protect privacy using zero-knowledge proofs
+Analyze emotions in Bluesky posts with advanced NLP and protect privacy using Fully Homomorphic Encryption
 
 </div>
 
@@ -34,13 +34,13 @@ Analyze emotions in Bluesky posts with advanced NLP and protect privacy using ze
 
 ## 🔍 Overview
 
-This project implements a privacy-preserving emotion analysis system for Bluesky posts using ezKL (Easy Zero-Knowledge Learning). It allows users to analyze emotions related to specific questions or topics without revealing the actual posts or the emotion analysis model. The system detects 7 distinct emotions (joy, sadness, anger, fear, surprise, disgust, neutral) using a DistilRoBERTa model and visualizes results with interactive charts.
+This project implements a privacy-preserving emotion analysis system for Bluesky posts using Fully Homomorphic Encryption (FHE). It allows users to analyze emotions related to specific questions or topics without revealing the actual posts or the emotion analysis model. The system detects 7 distinct emotions (joy, sadness, anger, fear, surprise, disgust, neutral) using a DistilRoBERTa model and visualizes results with interactive charts.
 
 ## ✨ Features
 
 - **Advanced Keyword Extraction** using spaCy NLP for better post relevance
 - **Nuanced Emotion Analysis** with DistilRoBERTa detecting 7 emotions
-- **Privacy Protection** using ezKL for zero-knowledge proofs
+- **Privacy Protection** using TenSEAL for Fully Homomorphic Encryption
 - **Interactive Visualizations** with Chart.js
 - **User-Friendly Web Interface** built with Bootstrap
 - **Command-Line Interface** for automated processing
@@ -62,12 +62,12 @@ graph TD
     J -->|Verify| K[Proof Verification]
     H -->|Display| B
     K -->|Status| B
-    
+
     subgraph Frontend
     B
     H
     end
-    
+
     subgraph Backend Services
     C
     D
@@ -102,11 +102,11 @@ sequenceDiagram
     Model-->>API: Return emotion analysis
     API->>WebUI: Send analysis results & charts
     WebUI->>User: Display emotion visualizations
-    
+
     User->>WebUI: Request verification
     WebUI->>API: POST /generate_proof
-    API->>ZKP: Generate zero-knowledge proof
-    ZKP-->>API: Return verification result
+    API->>FHE: Perform computation on encrypted data
+    FHE-->>API: Return encrypted result
     API->>WebUI: Send verification status
     WebUI->>User: Display privacy verification
 ```
@@ -115,11 +115,11 @@ sequenceDiagram
 
 - **Frontend**: HTML, CSS, JavaScript, Bootstrap 5, Chart.js
 - **Backend**: Python 3.8+, Flask
-- **Machine Learning**: 
+- **Machine Learning**:
   - Transformers (DistilRoBERTa)
   - spaCy (NLP)
   - ONNX (Model export)
-- **Privacy**: ezKL for zero-knowledge proofs
+- **Privacy**: TenSEAL for Fully Homomorphic Encryption
 - **API Integration**: Bluesky atproto
 - **Visualization**: Matplotlib, Chart.js
 
@@ -150,10 +150,10 @@ sequenceDiagram
    # Create and activate virtual environment (optional)
    python -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
-   
+
    # Install dependencies
    pip install -r requirements.txt
-   
+
    # Download spaCy model
    python -m spacy download en_core_web_sm
    ```
@@ -163,9 +163,9 @@ sequenceDiagram
    python src/main.py --export-model
    ```
 
-5. **Prepare the ezKL environment**:
+5. **Prepare the FHE environment**:
    ```bash
-   python src/main.py --prepare-ezkl
+   python src/main.py --prepare-fhe
    ```
 
 ## 📘 Usage
@@ -194,7 +194,7 @@ sequenceDiagram
 
 - **Input Privacy**: The Bluesky posts are not revealed to the verifier.
 - **Model Privacy**: The emotion analysis model weights remain confidential.
-- **Computation Integrity**: The zero-knowledge proof ensures that the emotion analysis was performed correctly.
+- **Computation Integrity**: Fully Homomorphic Encryption ensures that the emotion analysis is performed on encrypted data without revealing the inputs.
 
 ## 🤝 Contributing
 

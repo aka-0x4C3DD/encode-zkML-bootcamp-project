@@ -11,47 +11,60 @@ $(document).ready(function() {
     // Form submission
     $('#sentimentForm').on('submit', function(e) {
         e.preventDefault();
-        
-        // Show loader
+
+        // Show loader and start progress animation
         $('#loader').show();
-        
+
+        // Animate the FHE progress bar
+        let progressValue = 0;
+        const progressInterval = setInterval(function() {
+            progressValue += 5;
+            if (progressValue <= 95) {
+                $('#fheProgress').css('width', progressValue + '%').attr('aria-valuenow', progressValue).text(progressValue + '%');
+            }
+        }, 1000);
+
         // Hide results if previously shown
         $('#results').hide();
-        
+
         // Get form data
         const formData = {
             question: $('#question').val(),
             username: $('#username').val(),
             password: $('#password').val()
         };
-        
+
         // Send AJAX request
         $.ajax({
             url: '/analyze',
             type: 'POST',
             data: formData,
             success: function(response) {
-                // Hide loader
-                $('#loader').hide();
-                
+                // Hide loader and stop progress animation
+                clearInterval(progressInterval);
+                $('#fheProgress').css('width', '100%').attr('aria-valuenow', 100).text('100%');
+                setTimeout(function() {
+                    $('#loader').hide();
+                }, 500);
+
                 // Update results
                 $('#result-question').text(response.question);
                 $('#result-post-count').text(response.post_count);
-                
+
                 // Update emotion with appropriate styling
                 const overallEmotion = response.overall_emotion;
                 $('#result-overall-emotion').text(overallEmotion)
                     .css('color', getEmotionColor(overallEmotion));
-                
+
                 // Create interactive charts
                 createEmotionDonutChart('emotionChart', response);
                 createEmotionRadarChart('emotionRadarChart', response);
                 createEmotionBreakdownChart('emotionBreakdownChart', response);
-                
+
                 // Add sample posts
                 const samplePostsContainer = $('#sample-posts');
                 samplePostsContainer.empty();
-                
+
                 // Only display first 5 posts in UI for performance, though we analyze 50
                 const displayPosts = response.sample_posts.slice(0, 5);
                 const totalPosts = response.sample_posts.length;
@@ -60,7 +73,7 @@ $(document).ready(function() {
                     const displayText = post.length > 150 ? post.substring(0, 150) + '...' : post;
                     const emotionData = response.emotions_data[index] || { dominant_emotion: 'neutral' };
                     const emotionColor = getEmotionColor(emotionData.dominant_emotion);
-                    
+
                     samplePostsContainer.append(`
                         <div class="list-group-item">
                             <div class="d-flex justify-content-between">
@@ -80,82 +93,54 @@ $(document).ready(function() {
                         </div>
                     `);
                 }
-                
+
                 // Show results
                 $('#results').show();
-                
+
+                // Update FHE info if available
+                if (response.fhe_enabled && response.fhe_details) {
+                    const fheDetails = `<div class="mt-2 small">
+                        <strong>FHE Method:</strong> ${response.fhe_details.method}<br>
+                        <strong>Description:</strong> ${response.fhe_details.description}
+                    </div>`;
+                    $('#fheInfo p').append(fheDetails);
+                }
+
                 // Scroll to results
                 $('html, body').animate({
                     scrollTop: $("#results").offset().top - 100
                 }, 500);
             },
             error: function(xhr) {
-                // Hide loader
+                // Hide loader and stop progress animation
+                clearInterval(progressInterval);
                 $('#loader').hide();
-                
+
                 // Show error
                 let errorMessage = 'An error occurred during the analysis.';
                 if (xhr.responseJSON && xhr.responseJSON.error) {
                     errorMessage = xhr.responseJSON.error;
                 }
-                
+
                 alert(errorMessage);
             }
         });
     });
-    
-    // Generate proof button
-    $('#generateProofBtn').on('click', function() {
-        $(this).prop('disabled', true).html(`
-            <span class="spinner-border spinner-border-sm"></span> 
-            Generating proof...
-            <span class="badge bg-warning text-dark ms-1">0%</span>
-        `);
-        
-        let progressCounter = 0;
-        const progressInterval = setInterval(function() {
-            progressCounter += 10;
-            if (progressCounter <= 90) {
-                $('#generateProofBtn .badge').text(progressCounter + '%');
-            }
-        }, 2000);
-        
-        $.ajax({
-            url: '/generate_proof',
-            type: 'POST',
-            success: function(response) {
-                clearInterval(progressInterval);
-                $('#generateProofBtn').prop('disabled', false).html(`
-                    <i class="fas fa-shield-alt me-2"></i>Generate Zero-Knowledge Proof
-                `);
-                
-                $('#zkProofMessage').text(response.success ? response.verification : response.message);
-                $('#zkProofResult')
-                    .removeClass(response.success ? 'alert-danger' : 'alert-info')
-                    .addClass(response.success ? 'alert-info' : 'alert-danger')
-                    .slideDown();
-            },
-            error: function() {
-                clearInterval(progressInterval);
-                $('#generateProofBtn').prop('disabled', false).html('<i class="fas fa-shield-alt me-2"></i>Generate Zero-Knowledge Proof');
-                $('#zkProofMessage').text('Failed to generate proof. Please try again.');
-                $('#zkProofResult').removeClass('alert-info').addClass('alert-danger').slideDown();
-            }
-        });
-    });
+
+    // FHE information is now displayed automatically as part of the main analysis
 
     // Test authentication button
     $('#testAuth').on('click', function() {
         const username = $('#username').val();
         const password = $('#password').val();
-        
+
         if (!username || !password) {
             alert("Please enter both username and password to test authentication");
             return;
         }
-        
+
         $(this).prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status"></span> Testing...');
-        
+
         $.ajax({
             url: '/test_auth',
             type: 'POST',
@@ -192,7 +177,7 @@ function getEmotionColor(emotion) {
         'anger': '#FF0000',    // Red
         'disgust': '#006400',  // Dark Green
     };
-    
+
     return colors[emotion] || '#A9A9A9';
 }
 
@@ -201,17 +186,17 @@ function getEmotionColor(emotion) {
  */
 function createEmotionDonutChart(canvasId, data) {
     const ctx = document.getElementById(canvasId).getContext('2d');
-    
+
     // Destroy existing chart if it exists
     if (emotionChart) {
         emotionChart.destroy();
     }
-    
+
     // Get the emotion data
     const labels = Object.keys(data.emotion_counts);
     const counts = Object.values(data.emotion_counts);
     const colors = data.colors || labels.map(getEmotionColor);
-    
+
     // Create the chart
     emotionChart = new Chart(ctx, {
         type: 'doughnut',
@@ -260,17 +245,17 @@ function createEmotionDonutChart(canvasId, data) {
  */
 function createEmotionRadarChart(canvasId, data) {
     const ctx = document.getElementById(canvasId).getContext('2d');
-    
+
     // Destroy existing chart if it exists
     if (emotionRadarChart) {
         emotionRadarChart.destroy();
     }
-    
+
     // Get the emotion data
     const labels = Object.keys(data.emotion_scores);
     const scores = Object.values(data.emotion_scores);
     const colors = data.colors || labels.map(getEmotionColor);
-    
+
     // Create the chart
     emotionRadarChart = new Chart(ctx, {
         type: 'radar',
@@ -316,15 +301,15 @@ function createEmotionRadarChart(canvasId, data) {
  */
 function createEmotionBreakdownChart(canvasId, data) {
     const ctx = document.getElementById(canvasId).getContext('2d');
-    
+
     // Destroy existing chart if it exists
     if (emotionBreakdownChart) {
         emotionBreakdownChart.destroy();
     }
-    
+
     // Only show up to 10 posts for chart clarity, even though we're analyzing 50
     const emotionsData = data.emotions_data.slice(0, 10);
-    
+
     // Prepare data for stacked bar chart
     const emotions = Object.keys(data.emotion_scores);
     const datasets = emotions.map((emotion, index) => {
@@ -334,7 +319,7 @@ function createEmotionBreakdownChart(canvasId, data) {
             backgroundColor: getEmotionColor(emotion)
         };
     });
-    
+
     // Create the chart
     emotionBreakdownChart = new Chart(ctx, {
         type: 'bar',

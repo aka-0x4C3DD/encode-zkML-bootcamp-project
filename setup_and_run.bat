@@ -30,11 +30,11 @@ echo [%date% %time%] Checking for tee command... >> %LOG_FILE%
 where tee >nul 2>&1
 if %ERRORLEVEL% neq 0 (
     echo [%date% %time%] tee command not found, installing temporary version... >> %LOG_FILE%
-    
+
     REM Create a directory for tools if it doesn't exist
     if not exist tools mkdir tools
     echo [%date% %time%] Created tools directory >> %LOG_FILE%
-    
+
     REM Download tee.exe from GitHub repository (using PowerShell)
     echo [%date% %time%] Downloading tee.exe from GitHub... >> %LOG_FILE%
     echo [%date% %time%] Command: powershell -Command "& {[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri 'https://github.com/dEajL3kA/tee-win32/releases/download/v1.3/tee-win32.zip' -OutFile 'tools\tee-win32.zip'}" >> %LOG_FILE%
@@ -43,20 +43,20 @@ if %ERRORLEVEL% neq 0 (
         call :log "%RED%" "Failed to download tee utility"
         call :log "%BLUE%" "Check your internet connection"
     )
-    
+
     REM Extract tee.exe from the archive
     echo [%date% %time%] Extracting tee.exe... >> %LOG_FILE%
     echo [%date% %time%] Command: powershell -Command "& {Add-Type -AssemblyName System.IO.Compression.FileSystem; [System.IO.Compression.ZipFile]::ExtractToDirectory('tools\tee-win32.zip', 'tools')}" >> %LOG_FILE%
     powershell -Command "& {Add-Type -AssemblyName System.IO.Compression.FileSystem; [System.IO.Compression.ZipFile]::ExtractToDirectory('tools\tee-win32.zip', 'tools')}" >> %LOG_FILE% 2>&1
-    
+
     REM Copy tee.exe to the current directory for immediate use
     echo [%date% %time%] Copying tee.exe to current directory... >> %LOG_FILE%
     copy tools\tee.exe . >> %LOG_FILE% 2>&1
-    
+
     REM Add the current directory to PATH for this session
     echo [%date% %time%] Adding current directory to PATH... >> %LOG_FILE%
     set "PATH=%CD%;%PATH%"
-    
+
     REM Verify tee is now available
     echo [%date% %time%] Verifying tee installation... >> %LOG_FILE%
     where tee >nul 2>&1
@@ -228,22 +228,22 @@ if not exist models\emotion_model.onnx (
 )
 
 call :log "%NC%" ""
-call :log "%NC%" "Step 4: Preparing EZKL environment..."
-if not exist ezkl_files\circuit.ezkl (
-    call :log "%NC%" "Setting up EZKL environment..."
-    python -m src.main --prepare-ezkl >> %LOG_FILE% 2>&1
+call :log "%NC%" "Step 4: Preparing FHE environment..."
+if not exist fhe_files\context.bin (
+    call :log "%NC%" "Setting up FHE environment..."
+    python -m src.main --prepare-fhe >> %LOG_FILE% 2>&1
     if %ERRORLEVEL% neq 0 (
-        call :log "%RED%" "Failed to prepare EZKL environment."
+        call :log "%RED%" "Failed to prepare FHE environment."
         call :log "%BLUE%" "Check if the ONNX model was exported correctly."
-        call :log "%BLUE%" "Verify that ezKL is installed properly: pip show ezkl"
+        call :log "%BLUE%" "Verify that TenSEAL is installed properly: pip show tenseal"
         call :log "%BLUE%" "Ensure you have sufficient disk space and memory."
         pause
         exit /b 1
     ) else (
-        call :log "%GREEN%" "EZKL environment prepared successfully."
+        call :log "%GREEN%" "FHE environment prepared successfully."
     )
 ) else (
-    call :log "%NC%" "EZKL environment already prepared, skipping setup."
+    call :log "%NC%" "FHE environment already prepared, skipping setup."
 )
 
 call :log "%NC%" ""
@@ -262,7 +262,7 @@ call :log "%NC%" ""
 
 REM Run the web app with improved error handling
 set "STARTTIME=%time: =0%"
-REM Store current error level before running python, to check if terminated abnormally 
+REM Store current error level before running python, to check if terminated abnormally
 set PREVIOUS_ERROR=%ERRORLEVEL%
 
 python run_web_app.py 2>&1 | findstr /V /C:"" | for /F "tokens=*" %%a in ('more') do (

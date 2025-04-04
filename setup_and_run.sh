@@ -23,7 +23,7 @@ log() {
   local category=$1
   local message=$2
   local color=$NC
-  
+
   case $category in
     "ERROR")
       color=$RED
@@ -37,7 +37,7 @@ log() {
     *)
       ;;
   esac
-  
+
   echo -e "[$timestamp] ${color}${category}:${NC} $message" | tee -a "$LOG_FILE"
 }
 
@@ -46,7 +46,7 @@ handle_error() {
   local exit_code=$1
   local error_message=$2
   local suggestion=$3
-  
+
   if [ $exit_code -ne 0 ]; then
     log "ERROR" "$error_message"
     if [ ! -z "$suggestion" ]; then
@@ -156,23 +156,23 @@ else
     log "SYSTEM" "Model already exists, skipping export."
 fi
 
-# Prepare EZKL environment
-log "SYSTEM" "Step 4: Preparing EZKL environment..."
-if [ ! -f "ezkl_files/circuit.ezkl" ]; then
-    log "SYSTEM" "Setting up EZKL environment..."
-    PYTHONPATH=. python src/main.py --prepare-ezkl
-    EZKL_EXIT_CODE=$?
-    
-    if [ $EZKL_EXIT_CODE -ne 0 ]; then
-        log "ERROR" "Failed to prepare EZKL environment (exit code $EZKL_EXIT_CODE)"
+# Prepare FHE environment
+log "SYSTEM" "Step 4: Preparing FHE environment..."
+if [ ! -f "fhe_files/context.bin" ]; then
+    log "SYSTEM" "Setting up FHE environment..."
+    PYTHONPATH=. python src/main.py --prepare-fhe
+    FHE_EXIT_CODE=$?
+
+    if [ $FHE_EXIT_CODE -ne 0 ]; then
+        log "ERROR" "Failed to prepare FHE environment (exit code $FHE_EXIT_CODE)"
         log "INFO" "Check if the ONNX model was exported correctly"
-        log "INFO" "Verify that ezKL is installed properly: pip show ezkl"
+        log "INFO" "Verify that TenSEAL is installed properly: pip show tenseal"
         log "INFO" "Ensure you have sufficient disk space and memory"
         exit 1
     fi
-    log "SUCCESS" "EZKL environment prepared successfully"
+    log "SUCCESS" "FHE environment prepared successfully"
 else
-    log "SYSTEM" "EZKL environment already prepared, skipping setup."
+    log "SYSTEM" "FHE environment already prepared, skipping setup."
 fi
 
 # Start web application
@@ -189,7 +189,7 @@ log "SYSTEM" "APPLICATION: Starting web server (logs below):"
 # Use a timeout for proper shutdown handling
 {
     # Run with timeout to capture exit code/signals
-    (PYTHONPATH=. python run_web_app.py 2>&1) | while read line; do 
+    (PYTHONPATH=. python run_web_app.py 2>&1) | while read line; do
         echo "[$(date '+%Y-%m-%d %H:%M:%S')] APP: $line" | tee -a "$LOG_FILE"
     done
 } || {

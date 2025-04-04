@@ -33,6 +33,16 @@
     background-color: #a777e3;
 }
 
+#fheInfo {
+    border-left: 4px solid #17a2b8;
+    background-color: #f8f9fa;
+}
+
+#fheInfo h5 {
+    color: #17a2b8;
+    font-weight: 600;
+}
+
 .chart-container {
     position: relative;
     height: 300px;

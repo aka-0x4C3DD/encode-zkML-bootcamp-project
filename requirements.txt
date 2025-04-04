@@ -2,7 +2,8 @@ atproto
 transformers
 torch
 onnx
-ezkl
+tenseal
+onnxruntime
 numpy
 tqdm
 matplotlib
